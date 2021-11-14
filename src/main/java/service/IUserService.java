@@ -19,4 +19,6 @@ public interface IUserService {
 
     public void insertUpdateWithoutTransaction();
 
+    public void insertUpdatTransaction();
+
 }

@@ -49,10 +49,18 @@ public class UsersServlet extends HttpServlet {
                 break;
             case "test-without-trans":
                 testWithoutTran(request,response);
+                break;
+            case "test-use-trans":
+                testUserTran(request,response);
+                break;
             default:
                 showListUser(request,response);
                 break;
         }
+    }
+
+    private void testUserTran(HttpServletRequest request, HttpServletResponse response) {
+        userService.insertUpdatTransaction();
     }
 
     private void testWithoutTran(HttpServletRequest request, HttpServletResponse response) {

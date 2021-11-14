@@ -260,4 +260,43 @@ public class UserService implements IUserService {
         }
     }
 
+    @Override
+    public void insertUpdatTransaction() {
+        Connection connection = ConnectionSingleton.getConnection();
+        try {
+            Statement statement = connection.createStatement();
+            PreparedStatement psInsert = connection.prepareStatement(SQL_INSERT);
+            PreparedStatement psUpdate = connection.prepareStatement(SQL_UPDATE);
+            statement.execute(SQL_TABLE_DROP);
+            statement.execute(SQL_TABLE_CREATE);
+            //start transaction block
+            connection.setAutoCommit(false);
+            //run list of insert commands
+            psInsert.setString(1,"quynh");
+            psInsert.setBigDecimal(2,new BigDecimal(20));
+            psInsert.setTimestamp(3,Timestamp.valueOf(LocalDateTime.now()));
+            psInsert.execute();
+
+            psInsert.setString(1,"ngan");
+            psInsert.setBigDecimal(2,new BigDecimal(30));
+            psInsert.setTimestamp(3,Timestamp.valueOf(LocalDateTime.now()));
+            psInsert.execute();
+
+            //run list of update commands
+            //below line caused error, test transaction
+
+            psUpdate.setBigDecimal(2,new BigDecimal(999.09));
+
+            psUpdate.setString(2,"quynh");
+            psUpdate.execute();
+            // end transaction block, commit changes
+            connection.commit();
+            //good practice to set it back to default true
+            connection.setAutoCommit(true);
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }
