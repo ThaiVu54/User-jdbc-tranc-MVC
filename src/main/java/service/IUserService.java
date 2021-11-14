@@ -17,4 +17,6 @@ public interface IUserService {
 
     void addUserTransaction(User user, int[] permission);
 
+    public void insertUpdateWithoutTransaction();
+
 }

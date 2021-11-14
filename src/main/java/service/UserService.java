@@ -3,7 +3,9 @@ package service;
 import config.ConnectionSingleton;
 import model.User;
 
+import java.math.BigDecimal;
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +16,17 @@ public class UserService implements IUserService {
     public static final String INSERT_INTO_USER_USERS_VALUES = "insert into user.users VALUES (?,?,?,?);";
     public static final String UPDATE_USERS_SET_NAME_EMAIL_COUNTRY_WHERE_ID = "update users set name = ?,email = ?,country = ? where id = ?;";
     public static final String DELETE_FROM_USERS_WHERE_ID = "delete from users where id = ?;";
+
+    private static final String SQL_INSERT = "insert into employee (name, salary, create_date) values (?,?,?)";
+    private static final String SQL_UPDATE = "update employee set salary=? where name=?";
+    private static final String SQL_TABLE_CREATE = "create table employee(" +
+            " id serial," +
+            " name varchar(100) not null ," +
+            " salary numeric(15,2) not null ," +
+            " create_date timestamp," +
+            " primary key (id)" +
+            ")";
+    private static final String SQL_TABLE_DROP = "drop table if exists employee";
 
     //    public static void main(String[] args) throws SQLException {
 //        UserService userService = new UserService();
@@ -162,35 +175,36 @@ public class UserService implements IUserService {
 
             rs = pstmt.getGeneratedKeys(); //get user id
             int userId = 0;
-            if (rs.next()){
+            if (rs.next()) {
                 userId = rs.getInt(1);
             }
-            // trong trường hợp thao tác chèn thành công, hãy gán hoán vị cho người dùng
+
             if (rowAffected == 1) {
                 String sqlPivot = "INSERT INTO user_permision (user_id,permision_id) values(?,?)";
                 pstmtAssignment = conn.prepareStatement(sqlPivot);
-                for (int permisionId: permission){
-                    pstmtAssignment.setInt(1,userId);
-                    pstmtAssignment.setInt(2,permisionId);
+                for (int permisionId : permission) {
+                    pstmtAssignment.setInt(1, userId);
+                    pstmtAssignment.setInt(2, permisionId);
                     pstmtAssignment.executeUpdate();
                 }
                 conn.commit();
-            }else conn.rollback();
+            } else conn.rollback();
         } catch (SQLException e) {
             e.printStackTrace();
-            if (conn!=null){
+            if (conn != null) {
                 try {
                     conn.rollback();
                 } catch (SQLException ex) {
                     System.out.println(e.getMessage());
                 }
             }
-        }finally {
+        } finally {
             if (rs != null) {
                 try {
                     rs.close();
                 } catch (SQLException e) {
-                    System.out.println(e.getMessage());                }
+                    System.out.println(e.getMessage());
+                }
             }
             if (pstmt != null) {
                 try {
@@ -215,4 +229,35 @@ public class UserService implements IUserService {
             }
         }
     }
+
+    @Override
+    public void insertUpdateWithoutTransaction() {
+        try {
+            Connection connection = ConnectionSingleton.getConnection();
+            Statement statement = connection.createStatement();
+            PreparedStatement psInsert = connection.prepareStatement(SQL_INSERT);
+            PreparedStatement psUpdate = connection.prepareStatement(SQL_UPDATE);
+
+            statement.execute(SQL_TABLE_DROP);
+            statement.execute(SQL_TABLE_CREATE);
+
+            psInsert.setString(1, "quynh");
+            psInsert.setBigDecimal(2, new BigDecimal(10));
+            psInsert.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
+            psInsert.execute();
+
+            psInsert.setString(1, "ngan");
+            psInsert.setBigDecimal(2, new BigDecimal(20));
+            psInsert.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
+            psInsert.execute();
+
+            psUpdate.setBigDecimal(1, new BigDecimal(999.99));
+            psUpdate.setString(2, "quynh");
+            psUpdate.execute();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
